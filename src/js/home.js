@@ -76,6 +76,18 @@ const getUser = new Promise( function(todoBien,todoMal) {
     )
   }
 
+  function createTemplate(HTMLString) {
+    const html = document.implementation.createHTMLDocument()
+    html.body.innerHTML=HTMLString
+    return html.body.children[0]
+  }
+
+  function addEventClick($element) {
+    $element.addEventListener('click',function(){
+      showModal()
+    })
+  }
+
   const actionList = await getData('https://yts.mx/api/v2/list_movies.json?genre=action')
   const terrorList = await getData('https://yts.mx/api/v2/list_movies.json?genre=terror')
   const dramaList = await getData('https://yts.mx/api/v2/list_movies.json?genre=drama')
@@ -97,19 +109,50 @@ const getUser = new Promise( function(todoBien,todoMal) {
   const $modalImage = $modal.querySelector('img')
   const $modalDescription = $modal.querySelector('p')
 
-  actionList.data.movies.forEach( movie => {
-    const HTMLString = videoItemTemplate(movie)
-    const html = document.implementation.createHTMLDocument()
-    html.body.innerHTML=HTMLString
-    $actionContainer.append(html.body.children[0])
-    console.log(HTMLString)
-  })
+  function renderMoviesList(list,$container) {
+    $container.children[0].remove()
+    list.forEach( movie => {
+      const HTMLString = videoItemTemplate(movie)
+      const movieElement = createTemplate(HTMLString)
+      $container.append(movieElement)
+      
+      addEventClick(movieElement)
+    })
+  }
  
+  renderMoviesList(actionList.data.movies,$actionContainer)
+  renderMoviesList(dramaList.data.movies,$dramaContainer)
+  renderMoviesList(animationList.data.movies,$animationContainer)
+
+  function setAttributes($element,attributes) {
+    for(const attribute in attributes) {
+      $element.setAttributes(attribute, attributes[attribute])
+    }
+  }
+
+  $form.addEventListener('submit', function(event) {
+    event.preventDefault()
+    $home.classList.add('search-active')
+    const $loader = document.createElement('img')
+    setAttributes($loader, {
+      src:'src/images/loader.gif',
+      height: 50,
+      width: 50
+    })
+  })
+
+  function showModal() {
+    $overlay.classList.add('active')
+    $modal.style.animation = 'modalIn .8s forwards'
+  }
+
+  $hideModal.addEventListener('click',hideModal)
+  function hideModal() {
+    $overlay.classList.remove('active')
+    $modal.style.animation = 'modalOut .8s forwards'
+  }
+
+
   
-
-
-
-
-  console.log(videoItemTemplate('./src/images/cover/bitcoin.jpg','bitcoin Yeah'))
 
 })()
